@@ -1,0 +1,15 @@
+# Ignorowanie plików .pyc i folderu __pycache__
+*.pyc
+__pycache__
+
+# Ignorowanie bazy danych SQLite (jeśli używasz)
+db.sqlite3
+
+# Ignorowanie środowiska wirtualnego
+/env/
+
+# Ignorowanie plików środowiskowych
+*.env
+
+# Ignorowanie ustawień IDE (np. VSCode)
+.vscode/
