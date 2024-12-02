@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 # Model dla samochodów
 class Car(models.Model):
@@ -15,22 +16,31 @@ class Car(models.Model):
 
     def __str__(self):
         return f"{self.brand} {self.model} ({self.year_of_manufacture})"
+    
+# Model dla aut będących w naprawie
+class Maintenance(models.Model):
+    car = models.ForeignKey(Car, on_delete=models.CASCADE)
+    maintenance_date = models.DateField()
+    maintenance_description = models.CharField(max_length=50)
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    is_done = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'app_maintenance'
+
+    def __str__(self):
+        return self.car
+
 
 # Model dla użytkowników (pracownicy, klienci)
-class User(models.Model):
-    username = models.CharField(max_length=150, unique=True)  
-    email = models.EmailField(unique=True) 
-    phone_number = models.CharField(max_length=20)  
-    first_name = models.CharField(max_length=30, blank=True) 
-    last_name = models.CharField(max_length=30, blank=True)  
-    is_employee = models.BooleanField(default=False) 
-    date_joined = models.DateTimeField(auto_now_add=True)  
+class User(AbstractUser):  # Dziedziczenie z AbstractUser
+    phone_number = models.CharField(max_length=20, blank=True) 
 
     class Meta:
         db_table = 'app_users'
 
     def __str__(self):
-        return self.username  # Reprezentacja użytkownika jako jego nazwa użytkownika
+        return self.username
     
 # Model dla rezerwacji
 class Reservation(models.Model):
@@ -38,6 +48,7 @@ class Reservation(models.Model):
     car = models.ForeignKey(Car, on_delete=models.CASCADE) 
     start_date = models.DateTimeField()  
     end_date = models.DateTimeField()  
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)  
     approved = models.BooleanField(default=False)  
 

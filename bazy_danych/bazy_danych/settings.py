@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'car_rental',
 ]
 
+AUTH_USER_MODEL = 'car_rental.User'  
+APPEND_SLASH = True
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
