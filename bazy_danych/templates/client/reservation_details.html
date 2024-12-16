@@ -1,0 +1,25 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Szczegóły rezerwacji{% endblock %}
+
+{% block content %}
+<h1>Szczegóły rezerwacji</h1>
+
+<p><strong>Marka:</strong> {{ reservation.car.brand }}</p>
+<p><strong>Model:</strong> {{ reservation.car.model }}</p>
+<p><strong>Data rozpoczęcia:</strong> {{ reservation.start_date }}</p>
+<p><strong>Data zakończenia:</strong> {{ reservation.end_date }}</p>
+<p><strong>Koszt:</strong> {{ reservation.cost }} PLN</p>
+
+<!-- Przyciski do zakończenia rezerwacji -->
+{% if reservation.end_date >= reservation.start_date %}
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Zakończ rezerwację</button>
+    </form>
+{% else %}
+    <p>Rezerwacja zakończona.</p>
+{% endif %}
+
+<a href="{% url 'view_reservations' %}">Powrót do listy rezerwacji</a>
+{% endblock %}

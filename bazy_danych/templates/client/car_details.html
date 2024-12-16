@@ -1,0 +1,29 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Szczegóły Samochodu{% endblock %}
+
+{% block content %}
+<h1>Szczegóły Samochodu</h1>
+<p><strong>Marka:</strong> {{ car.brand }}</p>
+<p><strong>Model:</strong> {{ car.model }}</p>
+<p><strong>Rok produkcji:</strong> {{ car.year_of_manufacture }}</p>
+<p><strong>Rejestracja:</strong> {{ car.registration }}</p>
+<p><strong>Dostępność:</strong> {{ is_available|yesno:"Dostępny,Niedostępny" }}</p>
+
+{% if is_available %}
+    <h3>Zarezerwuj ten samochód:</h3>
+    <form method="post" action="{% url 'add_reservation' %}">
+        {% csrf_token %}
+        <input type="hidden" name="car_id" value="{{ car.id }}">
+        <label for="start_date">Data rozpoczęcia:</label>
+        <input type="hidden" name="start_date" value="{{ now|date:'Y-m-d' }}">
+        <label for="end_date">Data zakończenia rezerwacji:</label>
+        <input type="date" id="end_date" name="end_date" min="{{ now|date:'Y-m-d' }}" required>
+        <button type="submit">Zarezerwuj</button>
+    </form>
+{% else %}
+    <p>Ten samochód nie jest obecnie dostępny do rezerwacji.</p>
+{% endif %}
+
+<a href="{% url 'view_cars' %}">Powrót do listy samochodów</a>
+{% endblock %}

@@ -16,7 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.contrib.auth import views as auth_views
+from car_rental import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls)
+    path('admin/', admin.site.urls),
+    path('login/', auth_views.LoginView.as_view(template_name='client/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+    path('', views.home, name='home'),
+    path('cars/', views.view_cars, name='view_cars'),
+    path('cars/<int:car_id>/', views.car_details, name='car_details'),
+    path('reservation/add/', views.add_reservation, name='add_reservation'),
+    path('reservations/', views.view_reservations, name='view_reservations'),
+    path('reservations/<int:reservation_id>/', views.reservation_details, name='reservation_details')
 ]

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}CarRental{% endblock %}</title>
+</head>
+<body>
+    <!-- Nagłówek -->
+    <header>
+        <h1>CarRental</h1>
+        <hr>
+    </header>
+
+    <!-- Główna treść -->
+    <main>
+        <p>
+            <a href="{% url 'view_cars' %}">Przeglądaj samochody</a>
+            </p>
+            <p>
+            <a href="{% url 'view_reservations' %}" class="btn btn-primary">Moje rezerwacje</a>
+            </p>
+            <a href="{% url 'logout' %}">Wyloguj się</a>
+        {% block content %}
+        <!-- Treść specyficzna dla widoku -->
+        {% endblock %}
+    </main>
+
+    <!-- Stopka -->
+    <footer>
+        <hr>
+        <p>Autorzy: Dawid Kawałko, Rafał Załęcki</p>
+    </footer>
+</body>
+</html>

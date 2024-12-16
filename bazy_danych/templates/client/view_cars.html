@@ -1,0 +1,38 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Lista Samochodów{% endblock %}
+
+{% block content %}
+<h1>Lista Samochodów</h1>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Marka</th>
+            <th>Model</th>
+            <th>Rok Produkcji</th>
+            <th>Rejestracja</th>
+            <th>Dostępność</th>
+            <th>Szczegóły</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if cars_with_availability %}
+            {% for item in cars_with_availability %}
+            <tr>
+                <td>{{ item.car.brand }}</td>
+                <td>{{ item.car.model }}</td>
+                <td>{{ item.car.year_of_manufacture }}</td>
+                <td>{{ item.car.registration }}</td>
+                <td>{{ item.is_available|yesno:"Dostępny,Niedostępny" }}</td>
+                <td><a href="{% url 'car_details' car_id=item.car.id %}">Szczegóły</a></td>
+            </tr>
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="6">Brak dostępnych samochodów.</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+{% endblock %}

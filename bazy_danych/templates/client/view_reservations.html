@@ -1,0 +1,38 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Moje rezerwacje{% endblock %}
+
+{% block content %}
+<h1>Moje rezerwacje</h1>
+
+{% if reservations %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Marka</th>
+                <th>Model</th>
+                <th>Data rozpoczęcia</th>
+                <th>Data zakończenia</th>
+                <th>Koszt</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in reservations %}
+            <tr>
+                <td>{{ reservation.car.brand }}</td>
+                <td>{{ reservation.car.model }}</td>
+                <td>{{ reservation.start_date }}</td>
+                <td>{{ reservation.end_date }}</td>
+                <td>{{ reservation.cost }} PLN</td>
+                <td>
+                    <a href="{% url 'reservation_details' reservation.id %}">Szczegóły</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nie masz żadnych rezerwacji.</p>
+{% endif %}
+{% endblock %}
