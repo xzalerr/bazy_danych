@@ -17,4 +17,5 @@
 {% if form.errors %}
     <p style="color: red;">Nieprawidłowe dane logowania. Spróbuj ponownie.</p>
 {% endif %}
+<p>Nie masz konta? <a href="{% url 'create_client_account' %}">Utwórz konto</a></p>
 {% endblock %}

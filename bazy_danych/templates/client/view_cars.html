@@ -25,6 +25,9 @@
                 <td>{{ item.car.registration }}</td>
                 <td>{{ item.is_available|yesno:"Dostępny,Niedostępny" }}</td>
                 <td><a href="{% url 'car_details' car_id=item.car.id %}">Szczegóły</a></td>
+                {% if user.groups.all.0.name == 'Employee' %}
+                    <td><a href="{% url 'edit_car' car_id=item.car.id %}">Edytuj</a></td>
+                {% endif %}
             </tr>
             {% endfor %}
         {% else %}

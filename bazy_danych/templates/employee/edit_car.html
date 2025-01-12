@@ -1,0 +1,43 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Edytuj Samochód{% endblock %}
+
+{% block content %}
+<h1>Edytuj Samochód</h1>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>
+            {{ message }}
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post" action="{% url 'edit_car' car.id %}">
+    {% csrf_token %}
+    <label for="brand">Marka:</label><br>
+    <input type="text" id="brand" name="brand" value="{{ car.brand }}" required><br>
+
+    <label for="model">Model:</label><br>
+    <input type="text" id="model" name="model" value="{{ car.model }}" required><br>
+
+    <label for="year_of_manufacture">Rok produkcji:</label><br>
+    <input type="number" id="year_of_manufacture" name="year_of_manufacture" 
+           value="{{ car.year_of_manufacture }}" min="1900" max="2024" required><br>
+
+    <label for="registration">Numer rejestracyjny:</label><br>
+    <input type="text" id="registration" name="registration" value="{{ car.registration }}" required><br>
+
+    <input type="hidden" name="today_date" value="{{ now|date:'Y-m-d' }}">
+
+    <br>
+    <button type="submit" name="save">Zapisz zmiany</button>
+    <button type="submit" name="delete" onclick="return confirm('Czy na pewno chcesz usunąć ten samochód?');">Usuń samochód</button>
+</form>
+
+<p>
+    <a href="{% url 'view_cars' %}">Powrót do listy samochodów</a>
+</p>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Utwórz Konto Klienta{% endblock %}
+
+{% block content %}
+    <h1>Utwórz Konto Klienta</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="username">Nazwa użytkownika:</label><br>
+        <input type="text" id="username" name="username" required><br>
+
+        <label for="password">Hasło:</label><br>
+        <input type="password" id="password" name="password" required><br>
+
+        <label for="phone_number">Numer telefonu:</label><br>
+        <input type="text" id="phone_number" name="phone_number" required><br>
+
+        <br>
+        <button type="submit">Utwórz Konto</button>
+    </form>
+
+    <p>Masz już konto? <a href="{% url 'login' %}">Zaloguj się</a></p>
+{% endblock %}

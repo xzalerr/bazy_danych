@@ -15,7 +15,6 @@
     <form method="post" action="{% url 'add_reservation' %}">
         {% csrf_token %}
         <input type="hidden" name="car_id" value="{{ car.id }}">
-        <label for="start_date">Data rozpoczęcia:</label>
         <input type="hidden" name="start_date" value="{{ now|date:'Y-m-d' }}">
         <label for="end_date">Data zakończenia rezerwacji:</label>
         <input type="date" id="end_date" name="end_date" min="{{ now|date:'Y-m-d' }}" required>

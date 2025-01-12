@@ -1,12 +1,26 @@
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required, login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.models import Group
+from django.contrib import messages
 from django.utils.timezone import now
 from django.utils import timezone
-from .models import Car, Reservation
+from .models import Car, Reservation, User
 from datetime import datetime
+
+def is_employee(user):
+    return user.groups.filter(name='Employee').exists()
+
+@user_passes_test(is_employee, login_url='login')
+def manage_reservations(request):
+    reservations = Reservation.objects.all()
+    return render(request, 'employee/manage_reservations.html', {'reservations': reservations})
+
+@user_passes_test(is_employee, login_url='login')
+def end_reservation(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    reservation.delete()
+    return redirect('manage_reservations')
 
 @login_required
 def home(request):
@@ -42,16 +56,78 @@ def car_details(request, car_id):
 
 # Utworzenie konta
 def create_client_account(request):
-    from .models import User
     if request.method == 'POST':
+        # Pobieranie danych z formularza
         username = request.POST.get('username')
         password = request.POST.get('password')
         phone_number = request.POST.get('phone_number')
 
+        # Sprawdzenie, czy grupa 'Client' istnieje
+        client_group, created = Group.objects.get_or_create(name='Client')
+
+        # Tworzenie użytkownika i dodanie do grupy
         user = User.objects.create_user(username=username, password=password, phone_number=phone_number)
-        user.groups.add(Group.objects.get(name='Client'))
-        return JsonResponse({'message': 'Account created successfully!'})
+        user.groups.add(client_group)
+
+        return redirect('login')
+
+    # Renderowanie formularza HTML
     return render(request, 'client/create_account.html')
+
+@permission_required('car_rental.add_car', raise_exception=True)
+def add_car(request):
+    if request.method == 'POST':
+        brand = request.POST.get('brand')
+        model = request.POST.get('model')
+        year_of_manufacture = request.POST.get('year_of_manufacture')
+        registration = request.POST.get('registration')
+
+        # Sprawdzenie czy samochód o danym numerze rejestracyjnym istnieje
+        if Car.objects.filter(registration=registration).exists():
+            messages.error(request, f"Samochód z numerem rejestracyjnym {registration} już istnieje!")
+        else:
+            Car.objects.create(
+                brand=brand,
+                model=model,
+                year_of_manufacture=year_of_manufacture,
+                registration=registration
+            )
+            messages.success(request, "Samochód został pomyślnie dodany!")
+            return redirect('add_car')
+
+    return render(request, 'employee/add_car.html')
+
+@permission_required('car_rental.change_car', raise_exception=True)
+def edit_car(request, car_id):
+    car = get_object_or_404(Car, id=car_id)
+
+    if request.method == 'POST':
+        if 'save' in request.POST:  # Przyciski z różnymi akcjami
+            # Aktualizacja danych samochodu
+            car.brand = request.POST.get('brand')
+            car.model = request.POST.get('model')
+            car.year_of_manufacture = request.POST.get('year_of_manufacture')
+            car.registration = request.POST.get('registration')
+
+            # Sprawdzenie, czy numer rejestracyjny jest unikalny
+            if Car.objects.filter(registration=car.registration).exclude(id=car.id).exists():
+                messages.error(request, "Samochód o podanym numerze rejestracyjnym już istnieje.")
+            else:
+                car.save()
+                messages.success(request, "Dane samochodu zostały zaktualizowane pomyślnie.")
+
+        elif 'delete' in request.POST:  # Usunięcie samochodu
+            # Sprawdzenie, czy samochód jest aktualnie wypożyczony
+            if Reservation.objects.filter(car=car, end_date__gte=timezone.now().date()).exists():
+                messages.error(request, "Nie można usunąć samochodu, ponieważ jest aktualnie wypożyczony.")
+            else:
+                car.delete()
+                messages.success(request, "Samochód został usunięty.")
+                return redirect('view_cars')  # Powrót do listy samochodów po usunięciu
+
+        return redirect('edit_car', car_id=car.id)
+
+    return render(request, 'employee/edit_car.html', {'car': car})
 
 # Dodawanie rezerwacji
 @permission_required('car_rental.add_reservation', raise_exception=True)

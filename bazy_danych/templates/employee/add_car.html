@@ -1,0 +1,39 @@
+{% extends 'client/base.html' %}
+
+{% block title %}Dodaj Samochód{% endblock %}
+
+{% block content %}
+<h1>Dodaj Nowy Samochód</h1>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>
+            {{ message }}
+        </li>        
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post" action="{% url 'add_car' %}">
+    {% csrf_token %}
+    <label for="brand">Marka:</label><br>
+    <input type="text" id="brand" name="brand" required><br>
+
+    <label for="model">Model:</label><br>
+    <input type="text" id="model" name="model" required><br>
+
+    <label for="year_of_manufacture">Rok produkcji:</label><br>
+    <input type="number" id="year_of_manufacture" name="year_of_manufacture" min="1900" max="2024" required><br>
+
+    <label for="registration">Numer rejestracyjny:</label><br>
+    <input type="text" id="registration" name="registration" required><br>
+
+    <br>
+    <button type="submit">Dodaj Samochód</button>
+</form>
+
+<p>
+    <a href="{% url 'manage_reservations' %}">Powrót do panelu zarządzania</a>
+</p>
+{% endblock %}
