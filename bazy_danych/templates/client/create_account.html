@@ -18,6 +18,12 @@
         <br>
         <button type="submit">Utwórz Konto</button>
     </form>
-
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
     <p>Masz już konto? <a href="{% url 'login' %}">Zaloguj się</a></p>
 {% endblock %}

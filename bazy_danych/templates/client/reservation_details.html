@@ -12,13 +12,13 @@
 <p><strong>Koszt:</strong> {{ reservation.cost }} PLN</p>
 
 <!-- Przyciski do zakończenia rezerwacji -->
-{% if reservation.end_date >= reservation.start_date %}
+{% if reservation.is_finished %}
+    <p>Rezerwacja zakończona.</p>
+{% else %}
     <form method="POST">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Zakończ rezerwację</button>
     </form>
-{% else %}
-    <p>Rezerwacja zakończona.</p>
 {% endif %}
 
 <a href="{% url 'view_reservations' %}">Powrót do listy rezerwacji</a>

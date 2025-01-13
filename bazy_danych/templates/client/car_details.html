@@ -12,6 +12,14 @@
 
 {% if is_available %}
     <h3>Zarezerwuj ten samochód:</h3>
+    <!-- Wyświetlanie komunikatów -->
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     <form method="post" action="{% url 'add_reservation' %}">
         {% csrf_token %}
         <input type="hidden" name="car_id" value="{{ car.id }}">

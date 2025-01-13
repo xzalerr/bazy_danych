@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from django.utils import timezone
 from .models import Car, Reservation, User
 from datetime import datetime
+from django.db import IntegrityError
 
 def is_employee(user):
     return user.groups.filter(name='Employee').exists()
@@ -14,6 +15,8 @@ def is_employee(user):
 @user_passes_test(is_employee, login_url='login')
 def manage_reservations(request):
     reservations = Reservation.objects.all()
+    for reservation in reservations:
+        reservation.is_finished = reservation.end_date <= now()
     return render(request, 'employee/manage_reservations.html', {'reservations': reservations})
 
 @user_passes_test(is_employee, login_url='login')
@@ -62,14 +65,32 @@ def create_client_account(request):
         password = request.POST.get('password')
         phone_number = request.POST.get('phone_number')
 
-        # Sprawdzenie, czy grupa 'Client' istnieje
-        client_group, created = Group.objects.get_or_create(name='Client')
+        if not phone_number.isdigit() or int(phone_number) <= 0:
+            messages.error(request, "Numer telefonu musi być dodatnią liczbą.")
+            return render(request, 'client/create_account.html')
+        # Sprawdzanie, czy użytkownik o podanym loginie lub numerze telefonu już istnieje
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Nazwa użytkownika już istnieje. Wybierz inną.")
+            return render(request, 'client/create_account.html')
 
-        # Tworzenie użytkownika i dodanie do grupy
-        user = User.objects.create_user(username=username, password=password, phone_number=phone_number)
-        user.groups.add(client_group)
+        if User.objects.filter(phone_number=phone_number).exists():
+            messages.error(request, "Numer telefonu już jest używany. Wprowadź inny numer.")
+            return render(request, 'client/create_account.html')
 
-        return redirect('login')
+        try:
+            # Sprawdzenie, czy grupa 'Client' istnieje
+            client_group, created = Group.objects.get_or_create(name='Client')
+
+            # Tworzenie użytkownika i dodanie do grupy
+            user = User.objects.create_user(username=username, password=password, phone_number=phone_number)
+            user.groups.add(client_group)
+
+            messages.success(request, "Konto zostało pomyślnie utworzone. Możesz się teraz zalogować.")
+            return redirect('login')
+
+        except IntegrityError:
+            messages.error(request, "Wystąpił błąd podczas tworzenia konta. Spróbuj ponownie.")
+            return render(request, 'client/create_account.html')
 
     # Renderowanie formularza HTML
     return render(request, 'client/create_account.html')
@@ -138,50 +159,60 @@ def add_reservation(request):
         start_date = now().date()  # Dzisiejsza data
         end_date = request.POST.get('end_date')
         
-        # Konwertowanie daty zakończenia z formularza na obiekt Date
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-        
-        # Oblicz koszt na serwerze
-        base_cost = 100  # Koszt za tydzień
-        extra_day_cost = 20  # Koszt za dodatkowy dzień
+        try:
+            # Konwertowanie daty zakończenia z formularza na obiekt Date
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-        # Obliczenie liczby dni wynajmu
-        rental_duration = (end_date - start_date).days
-        if rental_duration < 0:
-            return JsonResponse({'error': 'Data zakończenia nie może być wcześniejsza niż dzisiejsza.'}, status=400)
+            # Obliczenie liczby dni wynajmu
+            rental_duration = (end_date - start_date).days
+            if rental_duration < 0:
+                messages.error(request, "Data zakończenia nie może być wcześniejsza niż dzisiejsza.")
+                car = get_object_or_404(Car, id=car_id)
+                return redirect('car_details', car_id=car.id)
 
-        # Oblicz koszt
-        if rental_duration <= 7:
-            total_cost = base_cost
-        else:
-            total_cost = base_cost + (rental_duration - 7) * extra_day_cost
-        
-        # Pobierz samochód z bazy danych
-        car = get_object_or_404(Car, id=car_id)
+            # Oblicz koszt na serwerze
+            base_cost = 100  # Koszt za tydzień
+            extra_day_cost = 20  # Koszt za dodatkowy dzień
+            if rental_duration <= 7:
+                total_cost = base_cost
+            else:
+                total_cost = base_cost + (rental_duration - 7) * extra_day_cost
 
-        # Utwórz nową rezerwację
-        reservation = Reservation.objects.create(
-            user=request.user,
-            car=car,
-            start_date=start_date,
-            end_date=end_date,
-            cost=total_cost
-        )
+            # Pobierz samochód z bazy danych
+            car = get_object_or_404(Car, id=car_id)
 
-        return redirect('view_cars')  # Po udanej rezerwacji przekierowanie do listy samochodów
+            # Utwórz nową rezerwację
+            reservation = Reservation.objects.create(
+                user=request.user,
+                car=car,
+                start_date=start_date,
+                end_date=end_date,
+                cost=total_cost
+            )
 
-    return render(request, 'client/add_reservation.html')
+            messages.success(request, "Rezerwacja została pomyślnie utworzona.")
+            return redirect('view_cars')  # Po udanej rezerwacji przekierowanie do listy samochodów
+
+        except ValueError:
+            messages.error(request, "Nieprawidłowy format daty zakończenia.")
+            car = get_object_or_404(Car, id=car_id)
+            return redirect('car_details', car_id=car.id)
+
+    return redirect('car_details', car_id=car.id)
+
 
 @permission_required('car_rental.view_reservation', raise_exception=True)
 def view_reservations(request):
     reservations = Reservation.objects.filter(user=request.user)
+    for reservation in reservations:
+        reservation.is_finished = reservation.end_date <= now()
     return render(request, 'client/view_reservations.html', {'reservations': reservations})
 
 @permission_required('car_rental.view_reservation', raise_exception=True)
 def reservation_details(request, reservation_id):
     # Pobranie rezerwacji na podstawie ID
     reservation = get_object_or_404(Reservation, id=reservation_id)
-
+    reservation.is_finished = reservation.end_date <= now()
     # Sprawdzenie, czy rezerwacja jest jeszcze aktywna
     if reservation.end_date < reservation.start_date:
         return redirect('view_reservations')

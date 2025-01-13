@@ -24,10 +24,14 @@
             <td>{{ reservation.end_date }}</td>
             <td>{{ reservation.cost }} PLN</td>
             <td>
-                <form method="post" action="{% url 'end_reservation' reservation.id %}">
-                    {% csrf_token %}
-                    <button type="submit">Zakończ Rezerwację</button>
-                </form>
+                {% if reservation.is_finished %}
+                    Zakończona
+                {% else %}
+                    <form method="post" action="{% url 'end_reservation' reservation.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Zakończ Rezerwację</button>
+                    </form>
+                {% endif %}
             </td>
         </tr>
         {% empty %}

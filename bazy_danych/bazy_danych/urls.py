@@ -29,6 +29,7 @@ urlpatterns = [
     path('reservation/add/', views.add_reservation, name='add_reservation'),
     path('reservations/', views.view_reservations, name='view_reservations'),
     path('reservations/<int:reservation_id>/', views.reservation_details, name='reservation_details'),
+    path('reservations/delete/<int:reservation_id>/', views.delete_reservation, name='delete_reservation'),
     path('manage_reservations/', views.manage_reservations, name='manage_reservations'),
     path('end_reservation/<int:reservation_id>/', views.end_reservation, name='end_reservation'),
     path('add_car/', views.add_car, name='add_car'),
